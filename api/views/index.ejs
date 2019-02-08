@@ -1,0 +1,123 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+
+  <title>Väder</title>
+  <meta name="description" content="Dashboard">
+  <meta name="author" content="Niko Nummi">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.0.2/echarts.min.js"></script>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+</head>
+
+<body onload="getSensorData()">
+  <div class="grid">
+      <div id="temperature" class="grid-item">
+          <div class="label">Ute</div>
+          <div class="value" id="temperatureValue"></div>
+      </div>
+      <div id="temperatureInside" class="grid-item">
+          <div class="label">Inne</div>
+          <div class="value" id="temperatureInsideValue"><%= body %>&deg;C</div>
+      </div>
+      <div id="relativehumidity" class="grid-item">
+          <div class="label">Relativ luftfuktighet</div>
+          <div class="value" id="relativehumidityValue"></div>
+      </div>
+      <div id="pressure" class="grid-item">
+          <div class="label">Lufttryck</div>
+          <div class="value" id="pressureValue"></div>
+      </div>
+    <div class="large-chart grid-chart">
+      <div id="temperatureChart" style="width: 100%; height:100%;"></div>
+    </div>
+    <div class="large-chart-right grid-chart">
+      <div id="pressureChart" style="width: 100%; height:100%;"></div>
+    </div>
+  </div>
+  <script type="text/javascript">
+    let tempData = [];
+    let relHumData = [];
+    let presData = [];
+    let timeData = [];
+      // specify chart configuration item and data
+    let option = {
+         title: {
+             text: 'Temperatur',
+           textStyle: {
+             color: '#ffffff',
+             fontSize: '24',
+             fontFamily: 'Roboto Mono'
+           },
+           left: 'center'
+         },
+         tooltip: {},
+         name: 'Tid',
+         xAxis: {
+             data: timeData, 
+             axisLabel: {
+                 color: '#ffffff',
+             },
+         },
+         yAxis: {
+             axisLabel: {
+                 color: '#ffffff',
+             },
+             min: Math.min(...tempData) - 1, 
+             max: Math.max(...tempData) + 1, 
+         },
+         series: [{
+             name: 'Temperatur',
+             color: '#ff8000',
+             type: 'line',
+             smooth: true,
+             data: tempData,  
+         }]
+       };
+    
+    function getSensorData() {
+    const xhr = new XMLHttpRequest();
+    xhr.responseType = 'json';
+    xhr.open("POST", "/graphql");
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("Accept", "application/json");
+    xhr.onload = function () {
+        tempData = xhr.response.data.measurements.map( (item) => item.temperature); 
+        timeData = xhr.response.data.measurements.map( (item) => item.time.substr(0,5));
+        relHumData = xhr.response.data.measurements.map( (item) => item.relativehumidity);
+        presData = xhr.response.data.measurements.map( (item) => item.pressure);
+        let tempChart = echarts.init(document.getElementById('temperatureChart'));
+        let presChart = echarts.init(document.getElementById('pressureChart'));
+        // Set charts
+        setOptionValues('Temperatur', tempData, timeData); 
+        tempChart.setOption(option);
+        setOptionValues('Lufttryck', presData, timeData);
+        presChart.setOption(option);
+        // Set Current Values
+
+
+
+        document.getElementById('temperatureValue').innerHTML = `${tempData.pop()}&deg;C`
+        document.getElementById('relativehumidityValue').innerHTML = `${relHumData.pop()}%`
+        document.getElementById('pressureValue').innerHTML = `${presData.pop()}hPa`
+    }
+    xhr.send(JSON.stringify({ query: "{ measurements { temperature relativehumidity pressure time} }" }));
+    }
+
+    const setOptionValues = (title, series, timeData) => {
+        option.title.text = title;
+        option.xAxis.data = timeData;
+        option.series[0].data = series;
+        option.yAxis.min = Math.min(...series) - 1;
+        option.yAxis.max = Math.max(...series) + 1;    
+    }
+
+    setInterval(getSensorData, 60*1000);
+
+  </script>
+</body>
+
+</html>
