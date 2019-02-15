@@ -6,6 +6,16 @@ body {
     font-family: 'Roboto Mono', monospace;
 }
 
+a {
+  color: hotpink;
+} 
+
+.diet-factors {
+    background-color: #DDDDDD;
+    color: black;
+    padding: 10px;
+}
+
 .grid {
     display: grid;
     grid-template-columns: repeat(4, auto);

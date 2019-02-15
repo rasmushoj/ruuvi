@@ -4,7 +4,7 @@ const { buildSchema } = require('graphql');
 const mariadb = require('mariadb');
 
 const halfDay = 43200
-const measurementsQuery = `SELECT * FROM observations WHERE (identifier = 'k' OR identifier IS NULL)
+const measurementsQuery = `SELECT * FROM observations WHERE identifier = 'w'
                            AND timestamp >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 DAY))`
 
 // MariaDB pool
@@ -59,7 +59,7 @@ const root = {
 insideTemp = "";
 
 // conn = pool.getConnection();
-pool.query("SELECT temperature FROM observations WHERE identifier = 'w' ORDER BY date DESC, time DESC LIMIT 1")
+pool.query("SELECT temperature FROM observations WHERE identifier = 'o' ORDER BY date DESC, time DESC LIMIT 1")
     .then(res => {
         insideTemp = res[0].temperature;
     });
@@ -76,6 +76,24 @@ app.use("/css",express.static(__dirname + "/views/css"));
 app.get('/', function(req, res){ 
     res.render('index', {body: insideTemp, title:"homepage"});
 });
+
+app.get('/48tuntia',function(req,res) {
+  res.sendFile('48tuntia.html', {"root": __dirname});
+});
+
+app.get('/jamix',function(req,res) {
+  res.sendFile('jamix.html', {"root": __dirname});
+});
+
+app.get('/lunch', function(req, res){
+    res.render('lunch', {});
+});
+
+app.get('/forecast', function(req, res){
+    res.render('forecast', {});
+});
+
+app.get('/inne', (req, res) => res.send(insideTemp.toString()))
 
 app.use('/graphql', graphqlHTTP({
     schema: schema,

@@ -1,0 +1,26 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+  <title>Lunch</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+<a href="/">Väder</a>
+<a href="/forecast">Prognos</a>
+<span style="color: white">Lunch</span>
+
+<div id="lunch" style="color: white; font-size: 12px; margin: 24px"></div>
+
+<script>
+$("#lunch").load("/jamix");
+</script>
+
+</body>
+
+</html>
