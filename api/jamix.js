@@ -18,15 +18,20 @@ request(
         vJson = JSON.parse(vJson.uidl);
 
         var html = "<p>";
-        html += vJson.state["6"].text;
+        if (vJson.state["6"])
+            html += vJson.state["6"].text;
         html += "</p><p>";
-        html += vJson.state["9"].text;
+        if (vJson.state["9"] && vJson.state["9"].text)
+            html += vJson.state["9"].text;
         html += "</p><p>";
-        html += vJson.state["16"].caption;
+        if (vJson.state["16"] && vJson.state["16"].caption)
+            html += vJson.state["16"].caption;
         html += "</p><p>";
-        html += vJson.state["17"].caption;
+        if (vJson.state["17"])
+            html += vJson.state["17"].caption;
         html += "</p><p>";
-        html += vJson.state["20"].text;
+        if (vJson.state["20"])
+            html += vJson.state["20"].text;
         html += "</p>";
 
         console.log(html);
