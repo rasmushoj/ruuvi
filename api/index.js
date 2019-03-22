@@ -71,7 +71,8 @@ app.set('view engine', 'ejs');
 /* app.get('/hello', function (req, res) {
   res.send('Hello World!')
 }) */
-app.use("/css",express.static(__dirname + "/views/css"));
+app.use("/css", express.static(__dirname + "/views/css"));
+app.use("/img/", express.static(__dirname + "/views/img"));
 
 app.get('/', function(req, res){ 
     res.render('index', {body: insideTemp, title:"homepage"});

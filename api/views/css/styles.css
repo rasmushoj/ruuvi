@@ -6,6 +6,28 @@ body {
     font-family: 'Roboto Mono', monospace;
 }
 
+#info {
+    height: 250px;
+    width: 250px;
+
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-top: -125px;
+    margin-left: -125px;
+                
+    color: red;
+    text-align: center;
+                
+    z-align: 1000; 
+    display: none;
+}
+
+.portrait {
+    width: 125px;
+    height: 253px;
+}
+
 a {
   color: hotpink;
 } 
