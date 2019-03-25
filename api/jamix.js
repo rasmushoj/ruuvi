@@ -1,5 +1,6 @@
 var request = require('request');
 const fs = require('fs');
+const path = require('path');
 
 //Custom Header pass
 var headersOpt = {
@@ -57,7 +58,7 @@ initializePromise.then(function(result) {
     uidl = JSON.parse((JSON.parse(result.body)).uidl);
 
     securityToken = uidl["Vaadin-Security-Key"];
-    fs.writeFile("/home/pi/ruuvi/api/jamix.html", uidl.state["19"].caption, function(err) {});
+    fs.writeFile(path.resolve(__dirname, 'jamix.html'), uidl.state["19"].caption, function(err) {});
 
     var rRaw = {"csrfToken":securityToken,"rpc":[["0","com.vaadin.shared.ui.ui.UIServerRpc","resize",[969,877,877,969]],["16","com.vaadin.shared.ui.button.ButtonServerRpc","click",[{"altKey":false,"button":"LEFT","clientX":516,"clientY":953,"ctrlKey":false,"metaKey":false,"relativeX":49,"relativeY":19,"shiftKey":false,"type":1}]]],"syncId":0,"clientId":0,"wsver":"7.7.10"}
     var rBody = JSON.stringify(rRaw);
@@ -80,7 +81,7 @@ initializePromise.then(function(result) {
 	  var lunch1 = body[0]["state"]["19"].caption;
           var lunch2 = body[0]["state"]["20"].caption;
           console.log(lunch1 + "\n" + lunch2);
-          fs.writeFile("/home/pi/ruuvi/api/jamix.html", "<p>" + lunch1 + "</p><p>" + lunch2 + "</p>", function(err) {});
+          fs.writeFile(path.resolve(__dirname, 'jamix.html'), "<p>" + lunch1 + "</p><p>" + lunch2 + "</p>", function(err) {});
     });
 }, function(err) {
     console.log("ERROR: " + err);
