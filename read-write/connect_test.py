@@ -1,6 +1,7 @@
 from ruuvitag_sensor.ruuvitag import RuuviTag
 
 sensors = ['FB:D0:9F:EC:41:C7','C9:81:C7:79:A2:35']
+# sensors = ['C2:CE:C6:B6:CF:6C','FB:D0:9F:EC:41:C7','C9:81:C7:79:A2:35']
 
 for mac in sensors:
   sensor = RuuviTag(mac)
