@@ -11,6 +11,8 @@ var headersOpt = {
 var j = request.jar();
 request = request.defaults({jar:j});
 
+var securityToken = "";
+
 request(
         {
         method:'post',
@@ -54,35 +56,85 @@ function initialize() {
 
 var initializePromise = initialize();
 
-initializePromise.then(function(result) {
+async function nextStep(result) {
     uidl = JSON.parse((JSON.parse(result.body)).uidl);
-
     securityToken = uidl["Vaadin-Security-Key"];
-    fs.writeFile(path.resolve(__dirname, 'jamix.html'), uidl.state["19"].caption, function(err) {});
 
-    var rRaw = {"csrfToken":securityToken,"rpc":[["0","com.vaadin.shared.ui.ui.UIServerRpc","resize",[969,877,877,969]],["16","com.vaadin.shared.ui.button.ButtonServerRpc","click",[{"altKey":false,"button":"LEFT","clientX":516,"clientY":953,"ctrlKey":false,"metaKey":false,"relativeX":49,"relativeY":19,"shiftKey":false,"type":1}]]],"syncId":0,"clientId":0,"wsver":"7.7.10"}
-    var rBody = JSON.stringify(rRaw);
-    console.log(rBody);
+    var rRaw1 = {"csrfToken":securityToken,"rpc":[["16","com.vaadin.shared.ui.button.ButtonServerRpc","click",[{"altKey":false,"button":"LEFT","clientX":516,"clientY":953,"ctrlKey":false,"metaKey":false,"relativeX":49,"relativeY":19,"shiftKey":false,"type":1}]]],"syncId":0,"clientId":0,"wsver":"7.7.10"}
+    var rBody1 = JSON.stringify(rRaw1);
+    var rRaw2 = {"csrfToken":securityToken,"rpc":[["10","com.vaadin.shared.ui.button.ButtonServerRpc","click",[{"altKey":false,"button":"LEFT","clientX":556,"clientY":196,"ctrlKey":false,"metaKey":false,"relativeX":38,"relativeY":18,"shiftKey":false,"type":1}]]],"syncId":1,"clientId":1};
+    var rBody2 = JSON.stringify(rRaw2);
+    var rRaw3 = {"csrfToken":securityToken,"rpc":[["70","com.vaadin.shared.ui.button.ButtonServerRpc","click",[{"altKey":false,"button":"LEFT","clientX":554,"clientY":191,"ctrlKey":false,"metaKey":false,"relativeX":27,"relativeY":13,"shiftKey":false,"type":1}]]],"syncId":2,"clientId":2}
+    var rBody3 = JSON.stringify(rRaw3);
 
-    request({
-        method:'post',
-        url:"https://www.jamix.fi/ruokalistat/UIDL/?v-uiId=0",
-        referer:"https://www.jamix.fi/ruokalistat/?anro=96127&k=6&mt=1",
-        headers: headersOpt,
-        body: rBody,
-        cookie: headersOpt["cookie"]
-    }, function (error, response, body) {
-          console.log("ERROR RPC: " + error);
-          console.log("COOKIE: " + request.cookie);
-          body = body.replace("for(;;);","");
-          console.log("BODY: " + body);
-          body = JSON.parse(body);
-          console.log(body);
-	  var lunch1 = body[0]["state"]["19"].caption;
-          var lunch2 = body[0]["state"]["20"].caption;
-          console.log(lunch1 + "\n" + lunch2);
-          fs.writeFile(path.resolve(__dirname, 'jamix.html'), "<p>" + lunch1 + "</p><p>" + lunch2 + "</p>", function(err) {});
+    console.log(1);
+    await doRPCRequest(rBody1, 0);
+    console.log(2);
+    await doRPCRequest(rBody2, 1);
+    console.log(3);
+    await doRPCRequest(rBody3, 2);
+
+    fs.readFile(path.resolve(__dirname, 'jamix.html'), 'utf8', function(err, contents) {
+        console.log(contents);
     });
-}, function(err) {
-    console.log("ERROR: " + err);
-})
+}
+
+function doRPCRequest(postContents, append) {
+    return new Promise(function (resolve, reject) {
+        request({
+            method:'post',
+            url:"https://www.jamix.fi/ruokalistat/UIDL/?v-uiId=0",
+            referer:"https://www.jamix.fi/ruokalistat/?anro=96127&k=6&mt=1",
+            headers: headersOpt,
+            body: postContents,
+            cookie: headersOpt["cookie"]
+        }, function (error, response, body) {
+            console.log("doRPCRequest1");
+            if (!error && response.statusCode == 200) {
+                body = body.replace("for(;;);","");
+                body = JSON.parse(body);
+                console.log(postContents);
+                console.log(headersOpt);
+
+//                console.log(body);
+
+                let fDay = body[0]["state"]["5"] != null ? body[0]["state"]["5"].text : "";
+
+                let lunch1 = "";
+                let lunch2 = "";
+
+                if (append == 0) {
+                    lunch1 = body[0]["state"]["19"] != null ? body[0]["state"]["19"].caption : "";
+                    lunch2 = body[0]["state"]["20"] != null ? body[0]["state"]["20"].caption : "";
+                } else if (append == 1) {
+                    lunch1 = body[0]["state"]["25"] != null ? body[0]["state"]["25"].caption : "";
+                    lunch2 = body[0]["state"]["26"] != null ? body[0]["state"]["26"].caption : "";
+                } else if (append == 2) {
+                    lunch1 = body[0]["state"]["29"] != null ? body[0]["state"]["29"].caption : "";
+                    lunch2 = body[0]["state"]["30"] != null ? body[0]["state"]["30"].caption : "";
+                    
+                    for (var menu in body[0]["state"]) {
+                        if (menu != null)
+                            lunch1 = lunch1 + menu.caption;
+                    }
+                }
+
+                console.log(fDay);
+                console.log(lunch1);
+                console.log(lunch2);
+
+                if (append > 0)
+                    fs.appendFile(path.resolve(__dirname, 'jamix.html'), "<p>" + fDay  + "</p><p>" + lunch1 + "</p><p>" + lunch2 + "</p>\n", function(err) {});
+                else
+                    fs.writeFile(path.resolve(__dirname, 'jamix.html'), "<p>" + fDay  + "</p><p>" + lunch1 + "</p><p>" + lunch2 + "</p>\n", function(err) {});
+
+               resolve(body);
+            } else {
+               reject(error);
+            }
+            console.log("doRPCRequest2");
+        });
+    });
+}
+
+var swedish = initializePromise.then(nextStep);
