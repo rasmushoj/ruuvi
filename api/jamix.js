@@ -119,11 +119,6 @@ function doRPCRequest(postContents, append) {
                 } else if (append == 2) {
                     lunch1 = body[0]["state"]["31"] != null ? body[0]["state"]["31"].caption : "";
                     lunch2 = body[0]["state"]["32"] != null ? body[0]["state"]["32"].caption : "";
-
-                    for (var menu in body[0]["state"]) {
-                        if (menu != null)
-                            lunch1 = lunch1 + menu.caption;
-                    }
                 }
 
                 console.log(fDay);
@@ -138,10 +133,12 @@ function doRPCRequest(postContents, append) {
                 if (typeof lunch2 == 'undefined')
                     lunch2 = "";
 
+                lunch1 = lunch1.replace('<span class="item-name"></span></span><br/></span>','<span class="item-name">[BRA MAT]</span></span><br/></span>');
+
                 if (append > 0)
-                    fs.appendFile(path.resolve(__dirname, 'jamix.html'), "<p>" + fDay  + "</p><p>" + lunch1 + "</p><p>" + lunch2 + "</p>\n", function(err) {});
+                    fs.appendFile(path.resolve(__dirname, 'jamix.html'), "<p><b>" + fDay  + "</b></p><p>" + lunch1 + "</p><p>" + lunch2 + "</p>\n", function(err) {});
                 else
-                    fs.writeFile(path.resolve(__dirname, 'jamix.html'), "<p>" + fDay  + "</p><p>" + lunch1 + "</p><p>" + lunch2 + "</p>\n", function(err) {});
+                    fs.writeFile(path.resolve(__dirname, 'jamix.html'), "<p><b>" + fDay  + "</b></p><p>" + lunch1 + "</p><p>" + lunch2 + "</p>\n", function(err) {});
 
                resolve(body);
             } else {

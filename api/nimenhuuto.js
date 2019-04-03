@@ -19,7 +19,7 @@ function initialize() {
         headers: headersOpt,
         form: {
               "login_name": "rasmus.johansson@iki.fi",
-              "password" : "jcbpfsqy"
+              "password" : "8d6bxb5v"
         }
     };
 
@@ -34,7 +34,7 @@ function initialize() {
                 // headersOpt["cookie"] = resp.headers["set-cookie"][0];
                 // request.cookie = resp.headers["set-cookie"][0];
                 // console.log(request.cookie);
-                console.log(resp);
+                // console.log(resp);
                 resolve(resp);
             }
         })
@@ -49,14 +49,29 @@ async function nextStep(result) {
             console.log("ERROR: " + err);
         } else {
             const $ = cheerio.load(body);
-            // $('a').remove();
-            var anchors = [];
-            $("a").each(function(i, link){
-                anchors[i] = $(link).attr("href");
-                console.log($(link));
-            });
+            // console.log($('div[class="borders team team-partial"]'))
 
-            fs.writeFile(path.resolve(__dirname, 'nimenhuuto.html'),  $('div[id="content-body"]').first().html());
+            /* $("div").each(function(i, div){
+                console.log($(div));
+            });*/
+
+            /*$('div[class="borders team team-partial"]').contents().map(function() {
+                console.log($(this))
+            }).get()*/
+            $('div[class="span1 logo"]').remove()
+            $('div[class="shortcut_menu_wrapper"]').remove()
+            $('div[class="team-event-header event_type_1"]').remove()
+            $('div[class="event-gradient event_gradient_1"]').remove()
+            $('div[class="event-image-overlay enroll-in"]').remove()
+            $('div[class="enrollment-counter-circle-container"]').remove()
+            $('div[class="enroll-buttons"]').remove()
+            $('div[class="event-gradient event_gradient_3"]').remove()
+            $('span[class="event-name-information"]').remove()
+            $('div[class="message_preview_wrapper"]').remove()
+            $('div[class="last-comment"]').remove()
+            $('div[class="event-gradient event_gradient_2"]').remove()
+
+            fs.writeFile(path.resolve(__dirname, 'nimenhuuto.html'),  $('div[class="section"]').first());
         }
     })
 }

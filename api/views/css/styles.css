@@ -93,3 +93,7 @@ div#pressure.grid-item {
 #temperatureChart, #pressureChart {
     margin-top: 15px;
 }
+
+hr {
+    border-top: 1px dotted white;
+}
