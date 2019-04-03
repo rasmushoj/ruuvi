@@ -58,6 +58,7 @@ var initializePromise = initialize();
 
 async function nextStep(result) {
     uidl = JSON.parse((JSON.parse(result.body)).uidl);
+    console.log(uidl);
     securityToken = uidl["Vaadin-Security-Key"];
 
     var rRaw1 = {"csrfToken":securityToken,"rpc":[["16","com.vaadin.shared.ui.button.ButtonServerRpc","click",[{"altKey":false,"button":"LEFT","clientX":516,"clientY":953,"ctrlKey":false,"metaKey":false,"relativeX":49,"relativeY":19,"shiftKey":false,"type":1}]]],"syncId":0,"clientId":0,"wsver":"7.7.10"}
@@ -96,7 +97,8 @@ function doRPCRequest(postContents, append) {
                 console.log(postContents);
                 console.log(headersOpt);
 
-//                console.log(body);
+                if (append == 0)
+                    fs.writeFile(path.resolve(__dirname, 'debug.html'), body);
 
                 let fDay = body[0]["state"]["5"] != null ? body[0]["state"]["5"].text : "";
 
@@ -112,7 +114,7 @@ function doRPCRequest(postContents, append) {
                 } else if (append == 2) {
                     lunch1 = body[0]["state"]["29"] != null ? body[0]["state"]["29"].caption : "";
                     lunch2 = body[0]["state"]["30"] != null ? body[0]["state"]["30"].caption : "";
-                    
+
                     for (var menu in body[0]["state"]) {
                         if (menu != null)
                             lunch1 = lunch1 + menu.caption;
@@ -120,8 +122,16 @@ function doRPCRequest(postContents, append) {
                 }
 
                 console.log(fDay);
-                console.log(lunch1);
+                console.log("lunch1");
+                console.log("<p>" + lunch1 + "</p>");
+                console.log("lunch2");
                 console.log(lunch2);
+
+                if (typeof lunch1 == 'undefined')
+                    lunch1 = "";
+
+                if (typeof lunch2 == 'undefined')
+                    lunch2 = "";
 
                 if (append > 0)
                     fs.appendFile(path.resolve(__dirname, 'jamix.html'), "<p>" + fDay  + "</p><p>" + lunch1 + "</p><p>" + lunch2 + "</p>\n", function(err) {});

@@ -28,7 +28,7 @@ for mac in sensors:
   # date DATE, time TIME, temperature NUMERIC, pressure NUMERIC, relativehumidity NUMERIC, identifier CHAR(1)
   # Write to database
   curs.execute ("""INSERT INTO observations
-                   VALUES (CURRENT_DATE(), NOW(), {}, {}, {}, UNIX_TIMESTAMP(), '{}')""".format(temp, pres, relhum, sensorId))
+                   VALUES (CURRENT_DATE(), NOW(), {}, {}, {}, '{}')""".format(temp, pres, relhum, sensorId))
 
 db.commit()
 db.close()

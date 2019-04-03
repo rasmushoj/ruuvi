@@ -1,0 +1,27 @@
+<!doctype html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet">
+  <title>Lunch</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+
+<body>
+<a href="/">Väder</a>
+<a href="/forecast">Prognos</a>
+<a href="/lunch">Lunch</a>
+<span style="color: white">Nimenhuuto</span>
+
+<div id="nimenhuuto" style="color: white; font-size: 12px; margin: 24px"></div>
+
+<script>
+$("#nimenhuuto").load("/nimenhuuto2");
+</script>
+
+</body>
+
+</html>

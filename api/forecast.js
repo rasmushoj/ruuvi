@@ -1,11 +1,9 @@
 const fs = require('fs');
 const request = require('request');
-let cheerio = require('cheerio');
+let cheerio = require('cheerio-req');
 var url = 'https://www.iltalehti.fi/saa/Suomi/Kirkkonummi/48tuntia';
 
-request(url, function (error, response, html) {
-    var $ = cheerio.load(html);
-
+cheerio(url, function (error, $) {
     fs.writeFile("/home/pi/ruuvi/api/48tuntia.html", $('div[class="weather"]').first().html(), function(err) {
     });
 

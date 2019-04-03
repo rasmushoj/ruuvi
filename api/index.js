@@ -5,7 +5,7 @@ const mariadb = require('mariadb');
 
 const halfDay = 43200
 const measurementsQuery = `SELECT * FROM observations WHERE identifier = 'w'
-                           AND timestamp >= UNIX_TIMESTAMP(DATE_SUB(NOW(), INTERVAL 1 DAY))`
+                           AND date >= DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)`
 
 // MariaDB pool
 const pool = mariadb.createPool({
@@ -19,10 +19,9 @@ const pool = mariadb.createPool({
 // Define schema for graphql
 const schema = buildSchema(`
         type Data {
-            temperature: Int,
-            pressure: Int,
+            temperature: Float,
+            pressure: Float,
             relativehumidity: Int,
-            timestamp: Int
             date: String,
             time: String
         }
@@ -42,7 +41,7 @@ function querySQL(query) {
                resolve(json);
            })
            .catch(err => {
-           //handle error
+               throw err;
            })
     });
 }
@@ -74,7 +73,7 @@ app.set('view engine', 'ejs');
 app.use("/css", express.static(__dirname + "/views/css"));
 app.use("/img/", express.static(__dirname + "/views/img"));
 
-app.get('/', function(req, res){ 
+app.get('/', function(req, res){
     res.render('index', {body: insideTemp, title:"homepage"});
 });
 
@@ -92,6 +91,14 @@ app.get('/lunch', function(req, res){
 
 app.get('/forecast', function(req, res){
     res.render('forecast', {});
+});
+
+app.get('/nimenhuuto', function(req, res){
+    res.render('nimenhuuto', {});
+});
+
+app.get('/nimenhuuto2', function(req, res){
+    res.sendFile('nimenhuuto.html', {"root":__dirname});
 });
 
 app.get('/inne', (req, res) => res.send(insideTemp.toString()))
