@@ -48,6 +48,7 @@ function initialize() {
                 headersOpt["cookie"] = resp.headers["set-cookie"][0];
                 request.cookie = resp.headers["set-cookie"][0];
                 console.log(request.cookie);
+                fs.writeFile(path.resolve(__dirname, 'jamix_1.html'), JSON.stringify(body));
                 resolve(resp);
             }
         })
@@ -65,7 +66,7 @@ async function nextStep(result) {
     var rBody1 = JSON.stringify(rRaw1);
     var rRaw2 = {"csrfToken":securityToken,"rpc":[["10","com.vaadin.shared.ui.button.ButtonServerRpc","click",[{"altKey":false,"button":"LEFT","clientX":556,"clientY":196,"ctrlKey":false,"metaKey":false,"relativeX":38,"relativeY":18,"shiftKey":false,"type":1}]]],"syncId":1,"clientId":1};
     var rBody2 = JSON.stringify(rRaw2);
-    var rRaw3 = {"csrfToken":securityToken,"rpc":[["70","com.vaadin.shared.ui.button.ButtonServerRpc","click",[{"altKey":false,"button":"LEFT","clientX":554,"clientY":191,"ctrlKey":false,"metaKey":false,"relativeX":27,"relativeY":13,"shiftKey":false,"type":1}]]],"syncId":2,"clientId":2}
+    var rRaw3 = {"csrfToken":securityToken,"rpc":[["10","com.vaadin.shared.ui.button.ButtonServerRpc","click",[{"altKey":false,"button":"LEFT","clientX":554,"clientY":191,"ctrlKey":false,"metaKey":false,"relativeX":27,"relativeY":13,"shiftKey":false,"type":1}]]],"syncId":2,"clientId":2}
     var rBody3 = JSON.stringify(rRaw3);
 
     console.log(1);
@@ -98,7 +99,11 @@ function doRPCRequest(postContents, append) {
                 console.log(headersOpt);
 
                 if (append == 0)
-                    fs.writeFile(path.resolve(__dirname, 'debug.html'), body);
+                    fs.writeFile(path.resolve(__dirname, 'debug0.html'), JSON.stringify(body, null, 2));
+                else if (append == 1)
+                    fs.writeFile(path.resolve(__dirname, 'debug1.html'), JSON.stringify(body, null, 2));
+                else if (append == 2)
+                    fs.writeFile(path.resolve(__dirname, 'debug2.html'), JSON.stringify(body, null, 2));
 
                 let fDay = body[0]["state"]["5"] != null ? body[0]["state"]["5"].text : "";
 
@@ -112,8 +117,8 @@ function doRPCRequest(postContents, append) {
                     lunch1 = body[0]["state"]["25"] != null ? body[0]["state"]["25"].caption : "";
                     lunch2 = body[0]["state"]["26"] != null ? body[0]["state"]["26"].caption : "";
                 } else if (append == 2) {
-                    lunch1 = body[0]["state"]["29"] != null ? body[0]["state"]["29"].caption : "";
-                    lunch2 = body[0]["state"]["30"] != null ? body[0]["state"]["30"].caption : "";
+                    lunch1 = body[0]["state"]["31"] != null ? body[0]["state"]["31"].caption : "";
+                    lunch2 = body[0]["state"]["32"] != null ? body[0]["state"]["32"].caption : "";
 
                     for (var menu in body[0]["state"]) {
                         if (menu != null)
