@@ -60,18 +60,58 @@ async function nextStep(result) {
             }).get()*/
             $('div[class="span1 logo"]').remove()
             $('div[class="shortcut_menu_wrapper"]').remove()
-            $('div[class="team-event-header event_type_1"]').remove()
+//            $('div[class="team-event-header event_type_1"]').remove()
             $('div[class="event-gradient event_gradient_1"]').remove()
             $('div[class="event-image-overlay enroll-in"]').remove()
             $('div[class="enrollment-counter-circle-container"]').remove()
             $('div[class="enroll-buttons"]').remove()
             $('div[class="event-gradient event_gradient_3"]').remove()
-            $('span[class="event-name-information"]').remove()
+//            $('span[class="event-name-information"]').remove()
+//            $('div[class="span4 event-information-container"]').remove()
             $('div[class="message_preview_wrapper"]').remove()
             $('div[class="last-comment"]').remove()
             $('div[class="event-gradient event_gradient_2"]').remove()
+            $('div[class="span8 event-border"]').remove()
+            
+            // remove links
+            $('div[class="row event-simple-container section-inner-margin "]').each(function(i, item) {
+                //console.log($(item).text());
+                if ($(item).find('a').length) {
+                    // console.log($(item).find('a').text())
+                    $(item).find('a').first().parent().append("<p>" + $(item).find('a').text() + "</p>")
+                    $(item).find('a').remove()
+                }
+            })
 
-            fs.writeFile(path.resolve(__dirname, 'nimenhuuto.html'),  $('div[class="section"]').first());
+            // remove more links
+            $('h3').each(function(i, item) {
+                //console.log($(item).text());
+                if ($(item).find('a').length) {
+                    // console.log($(item).find('a').text())
+                    $(item).find('a').first().parent().append($(item).find('a').text())
+                    $(item).find('a').remove()
+                }
+            })
+
+            // order by oldest team
+            var ordered = ["Kyif FT07","KyIF FT 09","Kyif FT 2011","KyIF P11"]
+            $('div[class="borders team team-partial"]').each(function(i, item) {
+                if ($(item).text().search("Kyif FT07") > -1)
+                    ordered[0] = $(item).html()
+                else if ($(item).text().search("KyIF FT 09") > -1)
+                    ordered[1] = $(item).html()
+                else if ($(item).text().search("Kyif FT 2011") > -1)
+                    ordered[2] = $(item).html()
+                else if ($(item).text().search("KyIF P11") > -1)
+                    ordered[3] = $(item).html()
+            })
+
+            fs.writeFile(path.resolve(__dirname, 'nimenhuuto.html'),  "");
+
+            ordered.forEach(function(arrayitem, index, array) {
+                console.log(arrayitem, index)
+                fs.appendFile(path.resolve(__dirname, 'nimenhuuto.html'),  arrayitem);
+            })
         }
     })
 }
