@@ -5,20 +5,20 @@ from ruuvitag_sensor.ruuvitag import RuuviTag
 sensors = ['FB:D0:9F:EC:41:C7','C9:81:C7:79:A2:35']
 
 # Connect to sql
-print(1)
+#print(1)
 db = mariadb.connect(host="127.0.0.1", user="writer", password="writer", database="observations")
-print(2)
+#print(2)
 curs=db.cursor()
-print(3)
+#print(3)
 
 for mac in sensors:
-  print(4)
+#  print(4)
   sensor = RuuviTag(mac)
-  print(5)
+#  print(5)
   state = sensor.update()
-  print(6)
+#  print(6)
   state = sensor.state
-  print(7)
+#  print(7)
 
   pres = state["pressure"]
   temp = state["temperature"]

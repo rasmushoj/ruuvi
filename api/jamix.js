@@ -1,6 +1,7 @@
 var request = require('request');
 const fs = require('fs');
 const path = require('path');
+const cheerio = require('cheerio');
 
 //Custom Header pass
 var headersOpt = {
@@ -16,7 +17,7 @@ var securityToken = "";
 request(
         {
         method:'post',
-        url:'https://www.jamix.fi/ruokalistat/?anro=96127&k=6&mt=1',
+        url:'https://www.jamix.fi/ruokalistat/?anro=96127&k=6&mt=2',
         form: {
           "v-browserDetails": "1"
         },
@@ -26,13 +27,12 @@ request(
         vJson = JSON.parse(vJson.uidl);
 
         securityToken = vJson["Vaadin-Security-Key"];
-        // console.log(securityToken);
 });
 
 function initialize() {
     // Setting URL and headers for request
     var options = {
-        url: 'https://www.jamix.fi/ruokalistat/?anro=96127&k=6&mt=1',
+        url: 'https://www.jamix.fi/ruokalistat/?anro=96127&k=6&mt=2',
         headers: headersOpt,
         form: { "v-browserDetails": "1" }
     };
@@ -43,11 +43,9 @@ function initialize() {
         request.post(options, function(err, resp, body) {
             if (err) {
                 reject(err);
-//                console.log("ERROR: " + err);
             } else {
                 headersOpt["cookie"] = resp.headers["set-cookie"][0];
                 request.cookie = resp.headers["set-cookie"][0];
-//                console.log(request.cookie);
                 fs.writeFile(path.resolve(__dirname, 'jamix_1.html'), JSON.stringify(body));
                 resolve(resp);
             }
@@ -63,10 +61,10 @@ menu["10"] = "" //tomorrow in Swedish
 menu["11"] = "" //tomorrow in Finnish
 menu["20"] = "" //day after tomorrow in Swedish
 menu["21"] = "" //day after tomorrow in Finnish
+var calls = 0;
 
 async function nextStep(result) {
     uidl = JSON.parse((JSON.parse(result.body)).uidl);
-    //console.log(uidl);
     securityToken = uidl["Vaadin-Security-Key"];
     var rRaw1 = {"csrfToken":securityToken,"rpc":[["16","com.vaadin.shared.ui.button.ButtonServerRpc","click",[{"altKey":false,"button":"LEFT","clientX":516,"clientY":953,"ctrlKey":false,"metaKey":false,"relativeX":49,"relativeY":19,"shiftKey":false,"type":1}]]],"syncId":0,"clientId":0,"wsver":"7.7.10"}
     var rBody1 = JSON.stringify(rRaw1);
@@ -100,6 +98,65 @@ async function nextStep(result) {
     await doRPCRequest(rBody5, 4, 0)
     await doRPCRequest(rBody5_fi, 4, 1)
 
+    // if translations are missing they can be added here
+    var menuTranslations = {};
+    menuTranslations["Aasialainen kasvisvuoka"] = "Asiatisk grönsaksgratäng";
+    menuTranslations["Jauheliha-perunasoselaatikko"] = "Potatismoslåda med köttfärs";
+    menuTranslations["Ravintorasva"] = "Livsmedelsfett";
+
+    //some time date is identical when changing language, then pick the date from the other language
+    for (var menuItem in menu) {
+        // språk
+        var language = menuItem.substr(menuItem.length - 1);
+        var dayNr = menuItem.substr(menuItem.length - 2, 1);
+
+        if (menu[menuItem].fDay == "") {
+            if (language == "0") {
+                menu[menuItem].fDay = menu[dayNr + "1"].fDay;
+                console.log("menuItem: " + menuItem + " language: " + language);
+            } else
+                menu[menuItem].fDay = menu[dayNr + "0"].fDay;
+        }
+
+        if (menu[menuItem].lunch1.search("<span class=\"item-name\"></span>") > -1 && language == "0") {
+            var swedish = menu[menuItem].lunch1.match(/<span class=\"item-name\">(.*?)<\/span>/g);
+            var finnish = menu[dayNr + "1"].lunch1.match(/<span class=\"item-name\">(.*?)<\/span>/g);
+            var emptyItem = -1;
+
+            for (var swedishItem in swedish) {
+                if (swedish[swedishItem] == "<span class=\"item-name\"></span>") {
+                    emptyItem = swedishItem;
+                }
+            }
+
+            if (finnish.length > 0 && emptyItem > -1) {
+                var finnishItemText = finnish[emptyItem].replace(/(<([^>]+)>)/ig,""); //remove html tags
+                menu[menuItem].lunch1 = menu[menuItem].lunch1.replace("<span class=\"item-name\"></span>","<span class=\"item-name\">" + menuTranslations[finnishItemText] + " *</span>");
+            } else
+                menu[menuItem].lunch1 = menu[menuItem].lunch1.replace("<span class=\"item-name\"></span>","(inte tillgänglig på svenska)");
+        }
+
+        if (menu[menuItem].lunch2.search("<span class=\"item-name\"></span>") > -1 && language == "0") {
+            var swedish = menu[menuItem].lunch2.match(/<span class=\"item-name\">(.*?)<\/span>/g);
+            var finnish = menu[dayNr + "1"].lunch2.match(/<span class=\"item-name\">(.*?)<\/span>/g);
+
+            for (var swedishItem in swedish) {
+                if (swedish[swedishItem] == "<span class=\"item-name\"></span>") {
+                    emptyItem = swedishItem;
+                }
+            }
+
+            if (finnish.length > 0 && emptyItem > -1) {
+                var finnishItemText = finnish[emptyItem].replace(/(<([^>]+)>)/ig,""); //remove html tags
+                menu[menuItem].lunch2 = menu[menuItem].lunch2.replace("<span class=\"item-name\"></span>","<span class=\"item-name\">" + menuTranslations[finnishItemText] + " *</span>");
+            } else
+                menu[menuItem].lunch2 = menu[menuItem].lunch2.replace("<span class=\"item-name\"></span>","(inte tillgänglig på svenska)");
+        }
+
+        if (menu[menuItem].lunch1.trim() == "")
+            menu[menuItem].lunch1 = "-";
+    }
+
     var menuContents = "<table border=0 cellpadding=5px>"
     menuContents += "<tr><td><b>" + menu["00"].fDay + "</b></td><td><b>" + menu["01"].fDay + "</b></td></tr>"
     menuContents += "<tr><td>" + menu["00"].lunch1 + "</td><td>" + menu["01"].lunch1 + "</td></tr>"
@@ -116,8 +173,10 @@ async function nextStep(result) {
     menuContents += "<tr><td><b>" + menu["40"].fDay + "</b></td><td><b>" + menu["41"].fDay + "</b></td></tr>"
     menuContents += "<tr><td>" + menu["40"].lunch1 + "</td><td>" + menu["41"].lunch1 + "</td></tr>"
     menuContents += "<tr><td>" + menu["40"].lunch2 + "</td><td>" + menu["41"].lunch2 + "</td></tr>"
-    menuContents += "</table>"
+    menuContents += "</table>\n"
     console.log(menuContents)
+
+    menuContents += "* Översättning fanns inte i matlistan. Översattes här."
 
     fs.writeFile(path.resolve(__dirname, 'jamix.html'), menuContents)
 }
@@ -133,13 +192,18 @@ function doRPCRequest(postContents, append, language) {
             cookie: headersOpt["cookie"]
         }, function (error, response, body) {
             console.log("doRPCRequest1");
-            if (!error && response.statusCode == 200) {
-                body = body.replace("for(;;);","");
-                body = JSON.parse(body);
 
-                if (append == 0)
+            if (!error && response.statusCode == 200) {
+                body = response.body.replace("for(;;);","");
+                body = JSON.parse(body);
+                calls = calls + 1;
+
+                if (append == 0) {
                     fs.writeFile(path.resolve(__dirname, 'debug0.html'), JSON.stringify(body, null, 2));
-                else if (append == 1)
+                    fs.writeFile(path.resolve(__dirname, 'debug0_.html'), JSON.stringify(body, null, 2));
+                    if (JSON.stringify(body).indexOf("Greki") > -1)
+                        fs.writeFile(path.resolve(__dirname, 'debug0__.html'), append.toString() + "\n" + calls.toString() + "\n" + JSON.stringify(body, null, 2));
+                } else if (append == 1)
                     fs.writeFile(path.resolve(__dirname, 'debug1.html'), JSON.stringify(body, null, 2));
                 else if (append == 2)
                     fs.writeFile(path.resolve(__dirname, 'debug2.html'), JSON.stringify(body, null, 2));
@@ -148,11 +212,18 @@ function doRPCRequest(postContents, append, language) {
                 else if (append == 4)
                     fs.writeFile(path.resolve(__dirname, 'debug4.html'), JSON.stringify(body, null, 2));
 
+                if (JSON.stringify(body).indexOf("Greki") > -1)
+                    fs.writeFile(path.resolve(__dirname, 'debug-where.html'), append.toString() + "\n" + calls.toString() + "\n" + JSON.stringify(body, null, 2));
+
                 let fDay = body[0]["state"]["5"] != null ? body[0]["state"]["5"].text : "";
                 console.log(fDay)
 
                 let lunch1 = "";
                 let lunch2 = "";
+
+                if (append == 1 && language == 1) {
+                    console.log(body[0]["state"]);
+                }
 
                 if (append == 0) {
                     lunch1 = body[0]["state"]["19"] != null ? body[0]["state"]["19"].caption : "";
@@ -160,16 +231,39 @@ function doRPCRequest(postContents, append, language) {
                 } else if (append == 1) {
                     lunch1 = body[0]["state"]["25"] != null ? body[0]["state"]["25"].caption : "";
                     lunch2 = body[0]["state"]["26"] != null ? body[0]["state"]["26"].caption : "";
+
+                    if (lunch1 == "")
+                        lunch1 = body[0]["state"]["21"] != null ? body[0]["state"]["21"].caption : "";
+
+                    if (lunch2 == "")
+                        lunch2 = body[0]["state"]["22"] != null ? body[0]["state"]["22"].caption : "";
+
+                    if (lunch1 == "")
+                        lunch1 = body[0]["state"]["27"] != null ? body[0]["state"]["27"].caption : "";
+
+                    if (typeof lunch2 == 'undefined' || lunch2 == "")
+                        lunch2 = body[0]["state"]["28"] != null ? body[0]["state"]["28"].caption : "";
+
                 } else if (append == 2) {
                     lunch1 = body[0]["state"]["31"] != null ? body[0]["state"]["31"].caption : "";
                     lunch2 = body[0]["state"]["32"] != null ? body[0]["state"]["32"].caption : "";
                 } else if (append == 3) {
                     lunch1 = body[0]["state"]["29"] != null ? body[0]["state"]["29"].caption : "";
                     lunch2 = body[0]["state"]["30"] != null ? body[0]["state"]["30"].caption : "";
+
+                    if (lunch1 == "")
+                        lunch1 = body[0]["state"]["33"] != null ? body[0]["state"]["33"].caption : "";
+
+                    if (lunch2 == "")
+                        lunch2 = body[0]["state"]["34"] != null ? body[0]["state"]["34"].caption : "";
+
                 } else if (append == 4) {
                     lunch1 = body[0]["state"]["35"] != null ? body[0]["state"]["35"].caption : "";
                     lunch2 = body[0]["state"]["36"] != null ? body[0]["state"]["36"].caption : "";
                 }
+
+                for (section in body[0]["state"])
+                    console.log(section + "- - -" + section.caption);
 
                 if (typeof lunch1 == 'undefined')
                     lunch1 = "";
@@ -178,6 +272,10 @@ function doRPCRequest(postContents, append, language) {
                     lunch2 = "";
 
                 console.log(JSON.stringify({fDay, lunch1, lunch2}))
+
+                if (fDay == "" && language == 1)
+                    fDay = menu[append.toString() + "0"].fDay;
+
                 menu[append.toString() + language.toString()] = {fDay, lunch1, lunch2}
 
                resolve(body);
