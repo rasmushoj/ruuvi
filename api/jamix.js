@@ -103,6 +103,12 @@ async function nextStep(result) {
     menuTranslations["Aasialainen kasvisvuoka"] = "Asiatisk grönsaksgratäng";
     menuTranslations["Jauheliha-perunasoselaatikko"] = "Potatismoslåda med köttfärs";
     menuTranslations["Ravintorasva"] = "Livsmedelsfett";
+    menuTranslations["Juurespalat"] = "Rotfruktsbitar";
+    menuTranslations["Sweet chili broiler"] = "Sweet chili broiler";
+    menuTranslations["Uunimunakas; talon tapaan"] = "Ugnsomelett på husets vis";
+    menuTranslations["Purjo-perunasosekeitto"] = "Purjo- och potatissoppa";
+    menuTranslations["Levite"] = "Bredbart pålägg";
+    menuTranslations["Marjarahkajälkiruoka"] = "Bärkvargsdessert";
 
     //some time date is identical when changing language, then pick the date from the other language
     for (var menuItem in menu) {
@@ -113,68 +119,37 @@ async function nextStep(result) {
         if (menu[menuItem].fDay == "") {
             if (language == "0") {
                 menu[menuItem].fDay = menu[dayNr + "1"].fDay;
-                console.log("menuItem: " + menuItem + " language: " + language);
             } else
                 menu[menuItem].fDay = menu[dayNr + "0"].fDay;
         }
 
-        if (menu[menuItem].lunch1.search("<span class=\"item-name\"></span>") > -1 && language == "0") {
-            var swedish = menu[menuItem].lunch1.match(/<span class=\"item-name\">(.*?)<\/span>/g);
-            var finnish = menu[dayNr + "1"].lunch1.match(/<span class=\"item-name\">(.*?)<\/span>/g);
-            var emptyItem = -1;
+        var swedishTmp = menu[menuItem].lunch_tmp.match(/<span class=\"item-name\">(.*?)<\/span>/g);
+        var finnishTmp = menu[dayNr + "1"].lunch_tmp.match(/<span class=\"item-name\">(.*?)<\/span>/g);
 
-            for (var swedishItem in swedish) {
-                if (swedish[swedishItem] == "<span class=\"item-name\"></span>") {
-                    emptyItem = swedishItem;
-                }
+        for (var swedishItem in swedishTmp) {
+            if (swedishTmp[swedishItem] == "<span class=\"item-name\"></span>") {
+                finnishItemText = finnishTmp[swedishItem].replace(/(<([^>]+)>)/ig,""); //remove html tags
+
+                if (typeof menuTranslations[finnishItemText] != 'undefined')
+                    menu[menuItem].lunch_tmp = menu[menuItem].lunch_tmp.replace("<span class=\"item-name\"></span>", "<span class=\"item-name\">" + menuTranslations[finnishItemText] + " *</span>");
+                else
+                    menu[menuItem].lunch_tmp = menu[menuItem].lunch_tmp.replace("<span class=\"item-name\"></span>","<span class=\"item-name\">(svenska saknas)</span>");
             }
-
-            if (finnish.length > 0 && emptyItem > -1) {
-                var finnishItemText = finnish[emptyItem].replace(/(<([^>]+)>)/ig,""); //remove html tags
-                menu[menuItem].lunch1 = menu[menuItem].lunch1.replace("<span class=\"item-name\"></span>","<span class=\"item-name\">" + menuTranslations[finnishItemText] + " *</span>");
-            } else
-                menu[menuItem].lunch1 = menu[menuItem].lunch1.replace("<span class=\"item-name\"></span>","(inte tillgänglig på svenska)");
         }
-
-        if (menu[menuItem].lunch2.search("<span class=\"item-name\"></span>") > -1 && language == "0") {
-            var swedish = menu[menuItem].lunch2.match(/<span class=\"item-name\">(.*?)<\/span>/g);
-            var finnish = menu[dayNr + "1"].lunch2.match(/<span class=\"item-name\">(.*?)<\/span>/g);
-
-            for (var swedishItem in swedish) {
-                if (swedish[swedishItem] == "<span class=\"item-name\"></span>") {
-                    emptyItem = swedishItem;
-                }
-            }
-
-            if (finnish.length > 0 && emptyItem > -1) {
-                var finnishItemText = finnish[emptyItem].replace(/(<([^>]+)>)/ig,""); //remove html tags
-                menu[menuItem].lunch2 = menu[menuItem].lunch2.replace("<span class=\"item-name\"></span>","<span class=\"item-name\">" + menuTranslations[finnishItemText] + " *</span>");
-            } else
-                menu[menuItem].lunch2 = menu[menuItem].lunch2.replace("<span class=\"item-name\"></span>","(inte tillgänglig på svenska)");
-        }
-
-        if (menu[menuItem].lunch1.trim() == "")
-            menu[menuItem].lunch1 = "-";
     }
 
     var menuContents = "<table border=0 cellpadding=5px>"
     menuContents += "<tr><td><b>" + menu["00"].fDay + "</b></td><td><b>" + menu["01"].fDay + "</b></td></tr>"
-    menuContents += "<tr><td>" + menu["00"].lunch1 + "</td><td>" + menu["01"].lunch1 + "</td></tr>"
-    menuContents += "<tr><td>" + menu["00"].lunch2 + "</td><td>" + menu["01"].lunch2 + "</td></tr>"
+    menuContents += "<tr><td>" + menu["00"].lunch_tmp + "</td><td>" + menu["01"].lunch_tmp + "</td></tr>"
     menuContents += "<tr><td><b>" + menu["10"].fDay + "</b></td><td><b>" + menu["11"].fDay + "</b></td></tr>"
-    menuContents += "<tr><td>" + menu["10"].lunch1 + "</td><td>" + menu["11"].lunch1 + "</td></tr>"
-    menuContents += "<tr><td>" + menu["10"].lunch2 + "</td><td>" + menu["11"].lunch2 + "</td></tr>"
+    menuContents += "<tr><td>" + menu["10"].lunch_tmp + "</td><td>" + menu["11"].lunch_tmp + "</td></tr>"
     menuContents += "<tr><td><b>" + menu["20"].fDay + "</b></td><td><b>" + menu["21"].fDay + "</b></td></tr>"
-    menuContents += "<tr><td>" + menu["20"].lunch1 + "</td><td>" + menu["21"].lunch1 + "</td></tr>"
-    menuContents += "<tr><td>" + menu["20"].lunch2 + "</td><td>" + menu["21"].lunch2 + "</td></tr>"
+    menuContents += "<tr><td>" + menu["20"].lunch_tmp + "</td><td>" + menu["21"].lunch_tmp + "</td></tr>"
     menuContents += "<tr><td><b>" + menu["30"].fDay + "</b></td><td><b>" + menu["31"].fDay + "</b></td></tr>"
-    menuContents += "<tr><td>" + menu["30"].lunch1 + "</td><td>" + menu["31"].lunch1 + "</td></tr>"
-    menuContents += "<tr><td>" + menu["30"].lunch2 + "</td><td>" + menu["31"].lunch2 + "</td></tr>"
+    menuContents += "<tr><td>" + menu["30"].lunch_tmp + "</td><td>" + menu["31"].lunch_tmp + "</td></tr>"
     menuContents += "<tr><td><b>" + menu["40"].fDay + "</b></td><td><b>" + menu["41"].fDay + "</b></td></tr>"
-    menuContents += "<tr><td>" + menu["40"].lunch1 + "</td><td>" + menu["41"].lunch1 + "</td></tr>"
-    menuContents += "<tr><td>" + menu["40"].lunch2 + "</td><td>" + menu["41"].lunch2 + "</td></tr>"
+    menuContents += "<tr><td>" + menu["40"].lunch_tmp + "</td><td>" + menu["41"].lunch_tmp + "</td></tr>"
     menuContents += "</table>\n"
-    console.log(menuContents)
 
     menuContents += "* Översättning fanns inte i matlistan. Översattes här."
 
@@ -191,98 +166,29 @@ function doRPCRequest(postContents, append, language) {
             body: postContents,
             cookie: headersOpt["cookie"]
         }, function (error, response, body) {
-            console.log("doRPCRequest1");
-
             if (!error && response.statusCode == 200) {
                 body = response.body.replace("for(;;);","");
                 body = JSON.parse(body);
                 calls = calls + 1;
 
-                if (append == 0) {
-                    fs.writeFile(path.resolve(__dirname, 'debug0.html'), JSON.stringify(body, null, 2));
-                    fs.writeFile(path.resolve(__dirname, 'debug0_.html'), JSON.stringify(body, null, 2));
-                    if (JSON.stringify(body).indexOf("Greki") > -1)
-                        fs.writeFile(path.resolve(__dirname, 'debug0__.html'), append.toString() + "\n" + calls.toString() + "\n" + JSON.stringify(body, null, 2));
-                } else if (append == 1)
-                    fs.writeFile(path.resolve(__dirname, 'debug1.html'), JSON.stringify(body, null, 2));
-                else if (append == 2)
-                    fs.writeFile(path.resolve(__dirname, 'debug2.html'), JSON.stringify(body, null, 2));
-                else if (append == 3)
-                    fs.writeFile(path.resolve(__dirname, 'debug3.html'), JSON.stringify(body, null, 2));
-                else if (append == 4)
-                    fs.writeFile(path.resolve(__dirname, 'debug4.html'), JSON.stringify(body, null, 2));
-
-                if (JSON.stringify(body).indexOf("Greki") > -1)
-                    fs.writeFile(path.resolve(__dirname, 'debug-where.html'), append.toString() + "\n" + calls.toString() + "\n" + JSON.stringify(body, null, 2));
-
                 let fDay = body[0]["state"]["5"] != null ? body[0]["state"]["5"].text : "";
-                console.log(fDay)
 
-                let lunch1 = "";
-                let lunch2 = "";
+                let lunch_tmp = "";
 
-                if (append == 1 && language == 1) {
-                    console.log(body[0]["state"]);
+                for (section in body[0]["state"]) {
+                    if (typeof body[0]["state"][section] != 'undefined' && body[0]["state"][section] != null && body[0]["state"][section].caption != null && body[0]["state"][section].caption.startsWith("<span"))
+                        lunch_tmp += "<br/>" + body[0]["state"][section].caption;
                 }
-
-                if (append == 0) {
-                    lunch1 = body[0]["state"]["19"] != null ? body[0]["state"]["19"].caption : "";
-                    lunch2 = body[0]["state"]["20"] != null ? body[0]["state"]["20"].caption : "";
-                } else if (append == 1) {
-                    lunch1 = body[0]["state"]["25"] != null ? body[0]["state"]["25"].caption : "";
-                    lunch2 = body[0]["state"]["26"] != null ? body[0]["state"]["26"].caption : "";
-
-                    if (lunch1 == "")
-                        lunch1 = body[0]["state"]["21"] != null ? body[0]["state"]["21"].caption : "";
-
-                    if (lunch2 == "")
-                        lunch2 = body[0]["state"]["22"] != null ? body[0]["state"]["22"].caption : "";
-
-                    if (lunch1 == "")
-                        lunch1 = body[0]["state"]["27"] != null ? body[0]["state"]["27"].caption : "";
-
-                    if (typeof lunch2 == 'undefined' || lunch2 == "")
-                        lunch2 = body[0]["state"]["28"] != null ? body[0]["state"]["28"].caption : "";
-
-                } else if (append == 2) {
-                    lunch1 = body[0]["state"]["31"] != null ? body[0]["state"]["31"].caption : "";
-                    lunch2 = body[0]["state"]["32"] != null ? body[0]["state"]["32"].caption : "";
-                } else if (append == 3) {
-                    lunch1 = body[0]["state"]["29"] != null ? body[0]["state"]["29"].caption : "";
-                    lunch2 = body[0]["state"]["30"] != null ? body[0]["state"]["30"].caption : "";
-
-                    if (lunch1 == "")
-                        lunch1 = body[0]["state"]["33"] != null ? body[0]["state"]["33"].caption : "";
-
-                    if (lunch2 == "")
-                        lunch2 = body[0]["state"]["34"] != null ? body[0]["state"]["34"].caption : "";
-
-                } else if (append == 4) {
-                    lunch1 = body[0]["state"]["35"] != null ? body[0]["state"]["35"].caption : "";
-                    lunch2 = body[0]["state"]["36"] != null ? body[0]["state"]["36"].caption : "";
-                }
-
-                for (section in body[0]["state"])
-                    console.log(section + "- - -" + section.caption);
-
-                if (typeof lunch1 == 'undefined')
-                    lunch1 = "";
-
-                if (typeof lunch2 == 'undefined')
-                    lunch2 = "";
-
-                console.log(JSON.stringify({fDay, lunch1, lunch2}))
 
                 if (fDay == "" && language == 1)
                     fDay = menu[append.toString() + "0"].fDay;
 
-                menu[append.toString() + language.toString()] = {fDay, lunch1, lunch2}
+                menu[append.toString() + language.toString()] = {fDay, lunch_tmp}
 
                resolve(body);
             } else {
                reject(error);
             }
-            console.log("doRPCRequest2");
         });
     });
 }
