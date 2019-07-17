@@ -161,23 +161,36 @@ function doRPCRequest(postContents, append, language) {
         request({
             method:'post',
             url:"https://www.jamix.fi/ruokalistat/UIDL/?v-uiId=0",
-            referer:"https://www.jamix.fi/ruokalistat/?anro=96127&k=6&mt=1",
+            referer:"https://www.jamix.fi/ruokalistat/?anro=96127&k=6&mt=2",
             headers: headersOpt,
             body: postContents,
             cookie: headersOpt["cookie"]
         }, function (error, response, body) {
             if (!error && response.statusCode == 200) {
+                if (append == 0)
+                    console.log(response.body)
+
                 body = response.body.replace("for(;;);","");
                 body = JSON.parse(body);
-                calls = calls + 1;
 
                 let fDay = body[0]["state"]["5"] != null ? body[0]["state"]["5"].text : "";
+
+                if (fDay == "")
+                    fDay = body[0]["state"]["53"] != null ? body[0]["state"]["53"].text : "";
+
+                if (append == 0) {
+                   // console.log(body[0]["state"]);
+                }
 
                 let lunch_tmp = "";
 
                 for (section in body[0]["state"]) {
-                    if (typeof body[0]["state"][section] != 'undefined' && body[0]["state"][section] != null && body[0]["state"][section].caption != null && body[0]["state"][section].caption.startsWith("<span"))
-                        lunch_tmp += "<br/>" + body[0]["state"][section].caption;
+                    if (typeof body[0]["state"][section] != 'undefined' && body[0]["state"][section] != null && body[0]["state"][section].caption != null && body[0]["state"][section].caption.startsWith("<span")) {
+                        if (lunch_tmp.length > 0)
+                            lunch_tmp += "<br/>"
+
+                        lunch_tmp += body[0]["state"][section].caption;
+                    }
                 }
 
                 if (fDay == "" && language == 1)
